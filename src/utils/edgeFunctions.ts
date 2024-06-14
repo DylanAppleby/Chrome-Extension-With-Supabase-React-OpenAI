@@ -21,7 +21,8 @@ const callAPIRequest = async (url: string, data: any) => {
 
 export const getGeneratedCircles = async (pageUrl: string, pageContent: string) => {
   const url =
-    'https://fysmrdbevwxphtrsevkn.supabase.co/functions/v1/analyzePageForCircles'
+    // 'https://fysmrdbevwxphtrsevkn.supabase.co/functions/v1/analyzePageForCircles'
+    'https://fysmrdbevwxphtrsevkn.supabase.co/functions/v1/analyzePageForCircles_4o'
 
   const data = {
     url: pageUrl,
@@ -29,7 +30,8 @@ export const getGeneratedCircles = async (pageUrl: string, pageContent: string) 
   }
 
   const res = await callAPIRequest(url, data)
-  return res
+  console.log(JSON.parse(res), 'res data')
+  return JSON.parse(res)
 }
 
 // export const getGeneratedCircleImage =async (name: string, description: string) => {
