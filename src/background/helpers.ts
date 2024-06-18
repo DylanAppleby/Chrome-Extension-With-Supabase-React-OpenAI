@@ -88,19 +88,20 @@ export const handleCircleGeneration = (
   pageContent: string
 ) => {
   getGeneratedCircles(pageUrl, pageContent)
-    .then((res1: any) => {
-      if (res1?.error && res1?.error === 'context_length_exceeded') {
+    .then((circleGenerationResult: any) => {
+      if (circleGenerationResult?.error && circleGenerationResult?.error === 'context_length_exceeded') {
         const limitedWords = getSpecificNumberOfWords(pageContent, 5000)
-        getGeneratedCircles(pageUrl, limitedWords).then((res2) => {
-          if (res2.length > 0) {
-            circleGenerationSuccessHandler('auto', tabId, res2)
+
+        getGeneratedCircles(pageUrl, limitedWords).then((reSubmittedResult: any) => {
+          if (reSubmittedResult.length > 0) {
+            circleGenerationSuccessHandler('auto', tabId, reSubmittedResult)
           } else {
             circleGenerationFailedHandler('auto', tabId)
           }
         })
       } else {
-        if (res1.length > 0) {
-          circleGenerationSuccessHandler('auto', tabId, res1)
+        if (circleGenerationResult.length > 0) {
+          circleGenerationSuccessHandler('auto', tabId, circleGenerationResult)
         } else {
           circleGenerationFailedHandler('auto', tabId)
         }

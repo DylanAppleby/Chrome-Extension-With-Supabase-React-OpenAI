@@ -288,6 +288,7 @@ export const AddManualCircle = () => {
                     accept="image/*"
                     onChange={handleImageChange}
                     className="hidden"
+                    placeholder='file'  
                   />
                 </div>
               </div>

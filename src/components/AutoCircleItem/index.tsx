@@ -1,14 +1,19 @@
-import RoundedButton from 'components/Buttons/RoundedButton'
-
 import { CircleInterface } from 'types/circle'
-
+import RoundedButton from 'components/Buttons/RoundedButton'
+import { useCircleContext } from 'context/CircleContext'
+import LoadingSpinner from 'components/LoadingSpinner'
 interface AutoCircleItemInterface {
   circle: CircleInterface
   url: string
+  isCreatingCircle: boolean
   onAdd: () => void
 }
 
-const AutoCircleItem = ({ circle, onAdd }: AutoCircleItemInterface) => {
+const AutoCircleItem = ({ circle, isCreatingCircle, onAdd }: AutoCircleItemInterface) => {
+  const { circleData } = useCircleContext();
+  const isCurrentCircle = circleData.name === circle.name;
+  const shouldHideOnHover = isCreatingCircle && !isCurrentCircle;
+
   return (
     <div className="p-4 transition-transform transform border border-stroke hover:bg-gray-100 flex gap-4 items-center rounded-2xl group">
       <img
@@ -35,8 +40,8 @@ const AutoCircleItem = ({ circle, onAdd }: AutoCircleItemInterface) => {
         </div>
       </div>
 
-      <div className="hidden group-hover:block">
-        <RoundedButton onClick={onAdd}>Add</RoundedButton>
+      <div className={`${isCurrentCircle ? 'block' : 'hidden'} ${shouldHideOnHover ? 'group-hover:hidden' : 'group-hover:block'}`}>
+        {(isCurrentCircle && isCreatingCircle) ? <LoadingSpinner /> : <RoundedButton onClick={onAdd} disabled={isCreatingCircle}>Add</RoundedButton>}
       </div>
     </div>
   )

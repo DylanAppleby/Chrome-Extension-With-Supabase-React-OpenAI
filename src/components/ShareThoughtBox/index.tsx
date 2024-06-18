@@ -112,8 +112,6 @@ const ShareThoughtBox = () => {
                 description: comment,
                 tags: circleData?.tags,
                 url: currentUrl,
-                circleName: name,
-                circleDescription: comment,
                 isGenesisPost: true,
                 type: 'direct',
               },

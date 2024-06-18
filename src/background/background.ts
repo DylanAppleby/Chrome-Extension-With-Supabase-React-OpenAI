@@ -1,7 +1,5 @@
 import supabase from 'utils/supabase'
 import { CircleGenerationStatus } from 'utils/constants'
-import { generateCircleImage, generateTags } from 'utils/edgeFunctions'
-import { resizeAndConvertImageToBuffer } from 'utils/helpers'
 
 import { ICircleGenerationStatus } from 'types/circle'
 
@@ -14,6 +12,9 @@ import {
   setToStorage,
 } from './helpers'
 import { BJActions, BJMessages } from './actions'
+import { generateCircleImage, generateTags } from 'utils/edgeFunctions'
+import { resizeAndConvertImageToBuffer, uploadImageToSupabase } from 'utils/helpers'
+import { supabaseSotrageUrl } from 'utils/constants'
 
 const bannedURLList: string[] = [
   'https://twitter.com/home',
@@ -307,7 +308,7 @@ async function handleGenerateDirectCircle(request: any, sendResponse: any) {
 
     // Initialize the circle generation object
     const newCircle = {
-      type: 'direct',
+      type: request.type,
       status: CircleGenerationStatus.INITIALIZED,
       result: [
         {
@@ -320,13 +321,13 @@ async function handleGenerateDirectCircle(request: any, sendResponse: any) {
     }
 
     // Update the storage status
-    generationStatus.direct = newCircle
+    generationStatus[request.type === "manual" ? "manual" : "direct"] = newCircle
     setToStorage(tabId.toString(), JSON.stringify(generationStatus))
 
     // Call an asynchronous function to generate the circle image
     const imageResult = await generateCircleImage(undefined, name, description)
     if (imageResult.error) {
-      generationStatus.direct = {
+      generationStatus[request.type === "manual" ? "manual" : "direct"] = {
         ...newCircle,
         status: CircleGenerationStatus.FAILED,
       }
@@ -339,8 +340,8 @@ async function handleGenerateDirectCircle(request: any, sendResponse: any) {
     const imageUrl = imageResult.url.replace(/"/g, '')
     const imageData = await resizeAndConvertImageToBuffer(imageUrl, 'background')
 
-    generationStatus.direct = {
-      type: 'direct',
+    generationStatus[request.type === "manual" ? "manual" : "direct"] = {
+      type: request.type,
       status: CircleGenerationStatus.GENERATING,
       result: [
         {
@@ -360,12 +361,12 @@ async function handleGenerateDirectCircle(request: any, sendResponse: any) {
       supabase,
       tabId,
       request.url,
-      request.circleName,
-      request.circleDescription,
+      name,
+      description,
       imageData,
       tags.length
         ? tags
-        : await generateTags(request.circleName, request.circleDescription),
+        : await generateTags(name, description),
       request.isGenesisPost,
       request.type
     )
@@ -373,8 +374,27 @@ async function handleGenerateDirectCircle(request: any, sendResponse: any) {
     // Final success response
     sendResponse({ success: true })
   } catch (error) {
-    console.error('Error during direct circle generation:', error)
+    console.error('Error during circle generation:', error)
     sendResponse({ error: 'Error during circle generation.' })
+  }
+}
+
+async function handleGenerateCircleImageAndUploadToSupabaseStorage(request: any) {
+  const { circleId, name, description } = request;
+  const imageResult = await generateCircleImage(undefined, name, description)
+  const imageUrl = imageResult.url.replace(/"/g, '')
+  const imageData = await resizeAndConvertImageToBuffer(imageUrl, 'background')
+  const result = await uploadImageToSupabase(
+    imageData,
+    'media_bucket',
+    `circle_images/${circleId}.webp`
+  )
+  if (result?.path) {
+    await supabase
+      .from('circles')
+      .update({ circle_logo_image: `${supabaseSotrageUrl}/media_bucket/${result?.path}` })
+      .eq('id', circleId);
+    console.log('circle Image was created successfully!');
   }
 }
 
@@ -544,6 +564,38 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({ error: 'User not logged in' })
     }
     return true
+  }
+
+  if (request.action === BJActions.CREATE_AUTO_CIRCLE) {
+    console.log('background.js: Creating the auto circle')
+    const { url, name, description, tags, isGenesisPost } = request;
+    if (supabaseUser) {
+      supabase
+        .rpc('tags_add_new_return_all_ids', {
+          tag_names: tags,
+        })
+        .then(async (result) => {
+          const addedTags = result.data
+
+          const genesisPostCircleCreationFuncName = 'circles_checkpoint_add_new_with_genesis_post'
+          const generalCircleCreationFuncName = 'circles_checkpoint_add_new_with_tags_return_id'
+          const { data } = await supabase.rpc(
+            `${isGenesisPost ? genesisPostCircleCreationFuncName : generalCircleCreationFuncName}`,
+            {
+              p_circle_name: name,
+              p_url: url,
+              p_circle_description: description,
+              circle_tags: addedTags,
+            }
+          )
+          setToStorage('circleId', JSON.stringify(data));
+          sendResponse(data);
+        })
+    } else {
+      console.error('background.js: User not logged in when calling getUserCircles')
+      sendResponse({ error: 'User not logged in' })
+    }
+    return true;
   }
 
   if (request.action === BJActions.CREATE_CIRCLE) {
@@ -822,10 +874,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         } else if (
           autoLength > 0 &&
           manualLength > 0 &&
-          auto.status === CircleGenerationStatus.SUCCEEDED &&
-          manual.status === CircleGenerationStatus.INITIALIZED
+          auto.status === CircleGenerationStatus.SUCCEEDED
         ) {
-          sendResponse(manual)
+          sendResponse(generationStatus)
         } else {
           sendResponse({})
         }
@@ -1020,7 +1071,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       setToStorage('circleIdForLink', JSON.stringify(circleId))
       sendResponse(status)
     } else {
-      sendResponse({ error: 'Error is occured while saving the link status to storage.' })
+      sendResponse({ error: 'Error is occurred while saving the link status to storage.' })
     }
     return true
   }
@@ -1035,8 +1086,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       })
       sendResponse(true)
     } else {
-      sendResponse({ error: 'Error is occured while saving the link status to storage.' })
+      sendResponse({ error: 'Error is occurred while saving the link status to storage.' })
     }
+    return true
+  }
+  if (request.action === BJActions.GENERATE_CIRCLE_IMAGE_AND_UPLOAD_TO_SUPABASE_STORAGE) {
+    console.log('background.js: Generating circle image and uploading to supabase storage')
+    handleGenerateCircleImageAndUploadToSupabaseStorage(request);
     return true
   }
 })
