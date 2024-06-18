@@ -62,7 +62,6 @@ const AddGeneratedCircles = ({
   }, [])
 
   const fetchCircleIdFromStorage = useCallback(async () => {
-    console.log('fetchCircleIdFromStorage function was triggered')
     try {
       const result = await getFromStorage('circleId');
       if (result) {
