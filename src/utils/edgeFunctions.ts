@@ -19,9 +19,18 @@ const callAPIRequest = async (url: string, data: any) => {
   return res
 }
 
+const getSanitizeResponse = (originalRes: string) => {
+  const result = originalRes.match(/\[([\s\S]*?)\](?![\s\S]*\])/)
+
+  if (result) {
+    return result[0]
+  } else {
+    return ''
+  }
+}
+
 export const getGeneratedCircles = async (pageUrl: string, pageContent: string) => {
   const url =
-    // 'https://fysmrdbevwxphtrsevkn.supabase.co/functions/v1/analyzePageForCircles'
     'https://fysmrdbevwxphtrsevkn.supabase.co/functions/v1/analyzePageForCircles_4o'
 
   const data = {
@@ -30,19 +39,9 @@ export const getGeneratedCircles = async (pageUrl: string, pageContent: string) 
   }
 
   const res = await callAPIRequest(url, data)
-  console.log(JSON.parse(res), 'res data')
-  return JSON.parse(res)
+  
+  return JSON.parse(getSanitizeResponse(res))
 }
-
-// export const getGeneratedCircleImage =async (name: string, description: string) => {
-//   const url = 'https://fysmrdbevwxphtrsevkn.supabase.co/functions/v1/generateImageForCircle'
-//   const data = {
-//     name,
-//     description
-//   }
-//   const res = await callAPIRequest(url, data)
-//   return res
-// }
 
 export const generateCircleImage = async (
   circle_id?: string,
