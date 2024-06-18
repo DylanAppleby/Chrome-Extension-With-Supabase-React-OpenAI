@@ -1,11 +1,12 @@
-import { CircleGenerationStatus, circlePageStatus } from '../../../utils/constants'
-import { useCircleContext } from '../../../context/CircleContext'
-import AddGeneratedCircles from './AddGeneratedCircles'
-import AddManualCircle from './AddManualCircle'
 import { useEffect, useState } from 'react'
-import { CircleInterface } from '../../../types/circle'
 
+import AddManualCircle from 'pages/Circles/AddCircle/AddManualCircle'
+import AddGeneratedCircles from 'pages/Circles/AddCircle/AddGeneratedCircles'
 
+import { CircleGenerationStatus, circlePageStatus } from 'utils/constants'
+import { CircleInterface } from 'types/circle'
+
+import { useCircleContext } from 'context/CircleContext'
 
 const AddCircle = () => {
   const { pageStatus, circleGenerationStatus, setCircleData } = useCircleContext()
@@ -13,21 +14,33 @@ const AddCircle = () => {
   const [generatedCircles, setGeneratedCircles] = useState<CircleInterface[]>([])
 
   useEffect(() => {
-    if (circleGenerationStatus?.status === CircleGenerationStatus.SUCCEEDED && circleGenerationStatus.type === 'auto') {
+    if (
+      circleGenerationStatus?.status === CircleGenerationStatus.SUCCEEDED &&
+      circleGenerationStatus.type === 'auto'
+    ) {
       setGeneratedCircles(circleGenerationStatus?.result)
-    } else if (circleGenerationStatus?.status === CircleGenerationStatus.INITIALIZED && circleGenerationStatus?.type === 'manual') {
+    } else if (
+      circleGenerationStatus?.status === CircleGenerationStatus.INITIALIZED &&
+      circleGenerationStatus?.type === 'manual'
+    ) {
       setCircleData(circleGenerationStatus.result[0])
     }
-  }, [circleGenerationStatus?.result, circleGenerationStatus?.status, circleGenerationStatus?.type, setCircleData])
+  }, [
+    circleGenerationStatus?.result,
+    circleGenerationStatus?.status,
+    circleGenerationStatus?.type,
+    setCircleData,
+  ])
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center p-5">
       {pageStatus === circlePageStatus.ADD_AUTOMATICALLY && (
-        <AddGeneratedCircles generatedCircles={generatedCircles} setGeneratedCircles={setGeneratedCircles} />
+        <AddGeneratedCircles
+          generatedCircles={generatedCircles}
+          setGeneratedCircles={setGeneratedCircles}
+        />
       )}
-      {pageStatus === circlePageStatus.ADD_MANUALLY && (
-        <AddManualCircle />
-      )}
+      {pageStatus === circlePageStatus.ADD_MANUALLY && <AddManualCircle />}
     </div>
   )
 }

@@ -1,7 +1,9 @@
-import Circles from './Circles'
-import Login from './Login'
-import LoadingPage from '../components/LoadingPage'
-import { useAuthContext } from '../context/AuthContext'
+import Circles from 'pages/Circles'
+import Login from 'pages/Login'
+
+import EdenLogo from 'components/SVGIcons/EdenLogo'
+
+import { useAuthContext } from 'context/AuthContext'
 
 const Main = () => {
   const { isAuthenticated, isChecking, setShowLogoutBtn } = useAuthContext()
@@ -15,12 +17,12 @@ const Main = () => {
     >
       {isChecking ? (
         <div className="w-full h-140 flex flex-col items-center justify-center">
-          <div className="absolute left-1/2 -translate-x-1/2 transform self-center border-black py-4">
-            <LoadingPage />
-          </div>
+          <EdenLogo />
         </div>
+      ) : isAuthenticated ? (
+        <Circles />
       ) : (
-        <>{isAuthenticated ? <Circles /> : <Login />}</>
+        <Login />
       )}
     </div>
   )

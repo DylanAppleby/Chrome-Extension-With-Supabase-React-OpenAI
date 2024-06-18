@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState, useMemo } from 'react'
-
-import LoadingSpinner from '../../../../components/LoadingSpinner'
-import { CircleInterface } from '../../../../types/circle'
 import classNames from 'classnames'
-import LinkCircleItem from '../../../../components/LinkCircleItem'
-import { useCircleContext } from '../../../../context/CircleContext'
-import { BJActions } from '../../../../background/actions'
-import LinkCommentBox from '../../../../components/LinkCommentBox'
+
+import LoadingSpinner from 'components/LoadingSpinner'
+import LinkCircleItem from 'components/LinkCircleItem'
+import LinkCommentBox from 'components/LinkCommentBox'
+
+import { useCircleContext } from 'context/CircleContext'
+import { CircleInterface } from 'types/circle'
+
+import { BJActions } from 'background/actions'
 
 const MyCircles = () => {
   const [userCircles, setUserCircles] = useState<CircleInterface[]>([])
@@ -16,10 +18,7 @@ const MyCircles = () => {
   const [isCheckingIfSentComment, setIsCheckingIfSentComment] = useState<boolean>(false)
   const [isShowingLinkCommentBox, setIsShowingLinkCommentBox] = useState<boolean>(false)
 
-  const {
-    currentUrl: url,
-    currentPageCircleIds,
-  } = useCircleContext()
+  const { currentUrl: url, currentPageCircleIds } = useCircleContext()
 
   const getUserCircles = useCallback(async () => {
     if (url !== '') {
@@ -71,7 +70,7 @@ const MyCircles = () => {
       newSectionItems.push(...circleSectionItem.slice(insertIndex))
 
       // console.log(newSectionItems, activeIndex, insertIndex, newSectionItems.length);
-      
+
       return newSectionItems
     } else {
       return circleSectionItem
@@ -114,9 +113,17 @@ const MyCircles = () => {
         <div className="w-full gap-2 grid grid-cols-2">
           {linkSectionItems.map((item, index) => {
             if (item.isLinkCommentBox && isShowingLinkCommentBox) {
-              return <div className='col-start-1 col-span-2'>
-                <LinkCommentBox circle={item.item as CircleInterface} isCheckingIfSentComment={isCheckingIfSentComment} setIsCheckingIfSentComment={setIsCheckingIfSentComment} setIsShowingLinkCommentBox={setIsShowingLinkCommentBox} setActiveIndex={setActiveIndex} />
-              </div>
+              return (
+                <div className="col-start-1 col-span-2">
+                  <LinkCommentBox
+                    circle={item.item as CircleInterface}
+                    isCheckingIfSentComment={isCheckingIfSentComment}
+                    setIsCheckingIfSentComment={setIsCheckingIfSentComment}
+                    setIsShowingLinkCommentBox={setIsShowingLinkCommentBox}
+                    setActiveIndex={setActiveIndex}
+                  />
+                </div>
+              )
             }
             return (
               <div key={index}>
@@ -137,4 +144,3 @@ const MyCircles = () => {
   )
 }
 export default MyCircles
-

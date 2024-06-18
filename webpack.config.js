@@ -79,6 +79,16 @@ module.exports = {
     ...getHtmlPlugins(['index']),
   ],
   resolve: {
+    alias: {
+      assets: path.resolve(__dirname, 'src/assets'),
+      background: path.resolve(__dirname, 'src/background'),
+      components: path.resolve(__dirname, 'src/components'),
+      content: path.resolve(__dirname, 'src/content'),
+      context: path.resolve(__dirname, 'src/context'),
+      pages: path.resolve(__dirname, 'src/pages'),
+      types: path.resolve(__dirname, 'src/types'),
+      utils: path.resolve(__dirname, 'src/utils'),
+    },
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {

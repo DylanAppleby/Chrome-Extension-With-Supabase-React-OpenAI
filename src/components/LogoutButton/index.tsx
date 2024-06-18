@@ -1,6 +1,8 @@
 import { useCallback } from 'react'
-import { useAuthContext } from '../../context/AuthContext'
-import { BJActions } from '../../background/actions'
+
+import { useAuthContext } from 'context/AuthContext'
+
+import { BJActions } from 'background/actions'
 
 const LogoutButton = () => {
   const { setIsAuthenticated } = useAuthContext()
@@ -17,7 +19,7 @@ const LogoutButton = () => {
           }
         }
       )
-    } catch (err) { }
+    } catch (err) {}
   }, [setIsAuthenticated])
   return (
     <button

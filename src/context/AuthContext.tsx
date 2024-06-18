@@ -7,7 +7,8 @@ import React, {
   useEffect,
   useState,
 } from 'react'
-import { BJActions } from '../background/actions'
+
+import { BJActions } from 'background/actions'
 
 interface AuthContextType {
   isAuthenticated: boolean
@@ -20,11 +21,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
-  setIsAuthenticated: () => { },
+  setIsAuthenticated: () => {},
   isChecking: true,
   avatarUrl: '',
   showLogoutBtn: false,
-  setShowLogoutBtn: () => { },
+  setShowLogoutBtn: () => {},
 })
 
 export const useAuthContext = () => useContext(AuthContext)
@@ -72,7 +73,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderInterface) 
               setAvatarUrl(res.avatar_url)
             } else {
               console.error('Failed to load avatar URL:', res?.error)
-              setAvatarUrl('');
+              setAvatarUrl('')
             }
           }
         )

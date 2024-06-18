@@ -1,24 +1,23 @@
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react'
-
-import { CircleInterface } from '../../types/circle'
-import RoundedButton from '../Buttons/RoundedButton'
-import { BJActions } from '../../background/actions'
-import LoadingSpinner from '../LoadingSpinner'
-import MessageIcon from '../SVGIcons/MessageIcon/MessageIcon'
-import CommentBox from '../CommentBox'
 import classNames from 'classnames'
-import { edenUrl } from '../../utils/constants'
+
+import CommentBox from 'components/CommentBox'
+import LoadingSpinner from 'components/LoadingSpinner'
+import MessageIcon from 'components/SVGIcons/MessageIcon/MessageIcon'
+import RoundedButton from 'components/Buttons/RoundedButton'
+
+import { edenUrl } from 'utils/constants'
+import { CircleInterface } from 'types/circle'
+
+import { BJActions } from 'background/actions'
 
 interface CircleItemInterface {
   circle: CircleInterface
-  url: string
+  activeUrl: string
   setPageStatus?: Dispatch<SetStateAction<number>>
 }
 
-const CircleItem = ({
-  circle,
-  url,
-}: CircleItemInterface) => {
+const CircleItem = ({ circle, activeUrl }: CircleItemInterface) => {
   const [isChecking, setIsChecking] = useState(true)
   const [isJoined, setIsJoined] = useState(false)
   const [isJoining, setIsJoining] = useState(false)
@@ -39,47 +38,60 @@ const CircleItem = ({
     checkIfJoined()
   }, [checkIfJoined])
 
-  const handlePost = useCallback((comment: string) => {
-    if (comment.length > 0) {
-      setIsCommenting(true)
-      chrome.runtime.sendMessage(
-        {
-          action: BJActions.CREATE_POST,
-          context: comment,
-          circleId: circle.id
-        },
-        (res) => {
-          if (!res.error) {
-            setIsCommenting(false)
-            setShowCommentBox(false)
+  const handlePost = useCallback(
+    (comment: string) => {
+      if (comment.length > 0) {
+        setIsCommenting(true)
+        chrome.runtime.sendMessage(
+          {
+            action: BJActions.CREATE_POST,
+            context: comment,
+            circleId: circle.id,
+          },
+          (res) => {
+            if (!res.error) {
+              setIsCommenting(false)
+              setShowCommentBox(false)
+            }
           }
-        }
-      )
-    }
-  }, [circle.id])
+        )
+      }
+    },
+    [circle.id]
+  )
 
   const handleJoin = useCallback(
     (circleId: string) => {
       setIsJoining(true)
-      chrome.runtime.sendMessage({ action: BJActions.JOIN_CIRCLE, circleId, url }, async (response) => {
-        if (response === true) {
-          await checkIfJoined()
-          setShowCommentBox(true)
+      chrome.runtime.sendMessage(
+        { action: BJActions.JOIN_CIRCLE, circleId, activeUrl },
+        async (response) => {
+          if (response === true) {
+            await checkIfJoined()
+            setShowCommentBox(true)
+          }
+          setIsJoining(false)
         }
-        setIsJoining(false)
-      })
+      )
     },
-    [checkIfJoined, url]
+    [checkIfJoined, activeUrl]
   )
 
   return (
     <div className="w-full flex flex-col gap-y-1">
-      <div className={classNames("relative p-4 transition-transform transform border border-gray-600 hover:bg-gray-100 flex gap-4 items-center rounded-2xl group", {
-        "border-stroke": !showComment
-      })}>
-        {isJoined && <div className="absolute top-0 left-0 bg-brand rounded-tl-2xl rounded-br-2xl py-1 px-2">
-          <p className="text-xs font-bold leading-normal text-white">Joined</p>
-        </div>}
+      <div
+        className={classNames(
+          'relative p-4 transition-transform transform border border-gray-600 hover:bg-gray-100 flex gap-4 items-center rounded-2xl group',
+          {
+            'border-stroke': !showComment,
+          }
+        )}
+      >
+        {isJoined && (
+          <div className="absolute top-0 left-0 bg-brand rounded-tl-2xl rounded-br-2xl py-1 px-2">
+            <p className="text-xs font-bold leading-normal text-white">Joined</p>
+          </div>
+        )}
         <a
           href={`${edenUrl}/circle/${circle.id}`}
           rel="noreferrer"
@@ -118,26 +130,36 @@ const CircleItem = ({
           </div>
         </div>
 
-        {isChecking ? <LoadingSpinner size={20} />
-          :
-          isJoined ?
-            <div className="cursor-pointer text-tertiary hover:text-gray-500" onClick={() => setShowCommentBox(true)}>
-              <MessageIcon />
-            </div>
-            :
-            <RoundedButton
-              disabled={isJoining}
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                handleJoin(circle.id)
-              }}
-            >
-              {isJoining ? 'Joining' : 'Join'}
-            </RoundedButton>
-        }
+        {isChecking ? (
+          <LoadingSpinner size={20} />
+        ) : isJoined ? (
+          <div
+            className="cursor-pointer text-tertiary hover:text-gray-500"
+            onClick={() => setShowCommentBox(true)}
+          >
+            <MessageIcon />
+          </div>
+        ) : (
+          <RoundedButton
+            disabled={isJoining}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              handleJoin(circle.id)
+            }}
+          >
+            {isJoining ? 'Joining' : 'Join'}
+          </RoundedButton>
+        )}
       </div>
-      {showComment && <CommentBox circleImageUrl={circle.circle_logo_image} onComment={handlePost} onClose={() => setShowCommentBox(false)} isCommenting={isCommenting} />}
+      {showComment && (
+        <CommentBox
+          circleImageUrl={circle.circle_logo_image}
+          onComment={handlePost}
+          onClose={() => setShowCommentBox(false)}
+          isCommenting={isCommenting}
+        />
+      )}
     </div>
   )
 }

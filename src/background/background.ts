@@ -1,7 +1,10 @@
-import supabase from '../utils/supabase'
+import supabase from 'utils/supabase'
+import { CircleGenerationStatus } from 'utils/constants'
+import { generateCircleImage, generateTags } from 'utils/edgeFunctions'
+import { resizeAndConvertImageToBuffer } from 'utils/helpers'
 
-import { CircleGenerationStatus } from '../utils/constants'
-import { ICircleGenerationStatus } from '../types/circle'
+import { ICircleGenerationStatus } from 'types/circle'
+
 import {
   getFromStorage,
   handleCircleCreation,
@@ -11,8 +14,6 @@ import {
   setToStorage,
 } from './helpers'
 import { BJActions, BJMessages } from './actions'
-import { generateCircleImage, generateTags } from '../utils/edgeFunctions'
-import { resizeAndConvertImageToBuffer } from '../utils/helpers'
 
 const bannedURLList: string[] = [
   'https://twitter.com/home',
@@ -636,7 +637,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if (request.action === BJActions.CLAIM_CIRCLE) {
     if (supabaseUser) {
-      const contextMessage = request.context ? `${request.context}\n${request.url}` : `I claimed ${request.url} for this circle`;
+      const contextMessage = request.context
+        ? `${request.context}\n${request.url}`
+        : `I claimed ${request.url} for this circle`
 
       supabase
         .rpc('circles_claim_circle', {

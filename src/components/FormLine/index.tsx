@@ -62,9 +62,12 @@ const FormLine: ForwardRefRenderFunction<HTMLInputElement, IFormLine> = (
       <input
         {...restProps}
         id={id}
-        className={classNames("rounded-2xl bg-secondary transition-colors duration-300 border border-secondary group-focus-within:border-gray-500 px-3 pb-2 pt-3 text-base font-medium leading-5 text-primary placeholder-fourth outline-none autofill:bg-secondary", {
-          "border-alert group-focus-within:border-alert": error
-        })}
+        className={classNames(
+          'rounded-2xl bg-secondary transition-colors duration-300 border border-secondary group-focus-within:border-gray-500 px-3 pb-2 pt-3 text-base font-medium leading-5 text-primary placeholder-fourth outline-none autofill:bg-secondary',
+          {
+            'border-alert group-focus-within:border-alert': error,
+          }
+        )}
         ref={ref}
         type={type}
         placeholder={placeholder}

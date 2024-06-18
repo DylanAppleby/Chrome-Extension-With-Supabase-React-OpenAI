@@ -1,4 +1,4 @@
-import Chevron from '../SVGIcons/Chevron'
+import Chevron from 'components/SVGIcons/Chevron'
 
 interface ICreationHeader {
   title: string

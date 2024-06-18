@@ -8,9 +8,11 @@ import React, {
   useMemo,
   useState,
 } from 'react'
-import { CircleInterface, ICircleGenerationStatus } from '../types/circle'
-import { CircleGenerationStatus, circlePageStatus } from '../utils/constants'
-import { BJActions } from '../background/actions'
+
+import { CircleInterface, ICircleGenerationStatus } from 'types/circle'
+import { CircleGenerationStatus, circlePageStatus } from 'utils/constants'
+
+import { BJActions } from 'background/actions'
 
 interface ICircleContext {
   oneClickStatusMessage: string
@@ -22,7 +24,7 @@ interface ICircleContext {
   currentTabTitle: string
   isLoading: boolean
   currentPageCircleIds: string[]
-  circleData: CircleInterface,
+  circleData: CircleInterface
   getCircles: () => void
   pageStatus: number
   setPageStatus: Dispatch<SetStateAction<number>>
@@ -57,19 +59,19 @@ const CircleContext = createContext<ICircleContext>({
   isLoading: true,
   currentPageCircleIds: [],
   circleData: initialCircleData,
-  getCircles: () => { },
+  getCircles: () => {},
   pageStatus: 0,
   isGenesisPost: false,
-  setPageStatus: () => { },
+  setPageStatus: () => {},
   isLoadingCGenerationStatus: false,
   circleGenerationStatus: null,
-  setCircleGenerationStatus: () => { },
-  getCircleGenerationStatus: () => { },
-  setCircleData: () => { },
-  setIsGenesisPost: () => { },
-  setCommentData: () => { },
-  setIsOneClickCommenting: () => { },
-  setOneClickStatusMessage: () => { },
+  setCircleGenerationStatus: () => {},
+  getCircleGenerationStatus: () => {},
+  setCircleData: () => {},
+  setIsGenesisPost: () => {},
+  setCommentData: () => {},
+  setIsOneClickCommenting: () => {},
+  setOneClickStatusMessage: () => {},
 })
 
 export const useCircleContext = () => useContext(CircleContext)
@@ -85,7 +87,8 @@ export const CircleContextProvider = ({ children }: ICircleContextProvider) => {
   const [currentTabTitle, setCurrentTabTitle] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [pageStatus, setPageStatus] = useState(circlePageStatus.CIRCLE_LIST)
-  const [circleGenerationStatus, setCircleGenerationStatus] = useState<ICircleGenerationStatus | null>(null)
+  const [circleGenerationStatus, setCircleGenerationStatus] =
+    useState<ICircleGenerationStatus | null>(null)
   const [isLoadingCGenerationStatus, setIsLoadingCGenerationStatus] = useState(true)
   const [circleData, setCircleData] = useState(initialCircleData) // circle information for manual circle creation
   const [isGenesisPost, setIsGenesisPost] = useState(false)
@@ -133,7 +136,7 @@ export const CircleContextProvider = ({ children }: ICircleContextProvider) => {
       chrome.runtime.sendMessage(
         {
           action: BJActions.GET_CIRCLE_GENERATION_STATUS,
-          tabId: currentTabId
+          tabId: currentTabId,
         },
         (res) => {
           setIsLoadingCGenerationStatus(false)
@@ -146,34 +149,37 @@ export const CircleContextProvider = ({ children }: ICircleContextProvider) => {
             if (JSON.stringify(res) !== JSON.stringify(circleGenerationStatus)) {
               setCircleGenerationStatus(res)
             }
-            if (type === "auto") {
+            if (type === 'auto') {
               setPageStatus(circlePageStatus.ADD_AUTOMATICALLY)
               if (status !== CircleGenerationStatus.GENERATING) {
                 clearInterval(getCircleGenerationStatusInterval)
               }
-            } else if (type === "manual") {
+            } else if (type === 'manual') {
               if (status === CircleGenerationStatus.INITIALIZED) {
-                setPageStatus(circlePageStatus.ADD_MANUALLY);
+                setPageStatus(circlePageStatus.ADD_MANUALLY)
               }
-              if (result[0]?.circle_logo_image || status === CircleGenerationStatus.FAILED) {
+              if (
+                result[0]?.circle_logo_image ||
+                status === CircleGenerationStatus.FAILED
+              ) {
                 clearInterval(getCircleGenerationStatusInterval)
               }
               if (status === CircleGenerationStatus.GENERATING) {
                 setPageStatus(circlePageStatus.ADD_MANUALLY)
               }
-              if (status === CircleGenerationStatus.SUCCEEDED)
-              {
+              if (status === CircleGenerationStatus.SUCCEEDED) {
                 setPageStatus(circlePageStatus.CIRCLE_LIST)
-                clearInterval(getCircleGenerationStatusInterval)      
+                clearInterval(getCircleGenerationStatusInterval)
               }
-            } else if (type === "direct") {
+            } else if (type === 'direct') {
               if (status === CircleGenerationStatus.INITIALIZED) {
                 chrome.runtime.sendMessage(
-                  { action: BJActions.GET_COMMENT_FROM_STORAGE }, (res) => {
+                  { action: BJActions.GET_COMMENT_FROM_STORAGE },
+                  (res) => {
                     if (res) {
-                      setCommentData(res);
+                      setCommentData(res)
                     }
-                  }               
+                  }
                 )
               }
               if (status === CircleGenerationStatus.GENERATING) {
@@ -197,7 +203,6 @@ export const CircleContextProvider = ({ children }: ICircleContextProvider) => {
 
   useEffect(() => {
     getCircleGenerationStatus()
-
   }, [getCircleGenerationStatus])
 
   return (
@@ -225,7 +230,7 @@ export const CircleContextProvider = ({ children }: ICircleContextProvider) => {
         setIsGenesisPost,
         setCommentData,
         setIsOneClickCommenting,
-        setOneClickStatusMessage
+        setOneClickStatusMessage,
       }}
     >
       {children}

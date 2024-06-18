@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useAuthContext } from '../../context/AuthContext'
-import CircleIcon from '../SVGIcons/CircleIcon'
-import UserIcon from '../SVGIcons/UserIcon'
-import Avatar from '../Avatar'
-import LogoutButton from '../LogoutButton'
-import { BJActions } from '../../background/actions'
-import EnlightenIcon from '../SVGIcons/EnlightenIcon'
-import { useCircleContext } from '../../context/CircleContext'
-import { circlePageStatus } from '../../utils/constants'
+
+import Avatar from 'components/Avatar'
+import LogoutButton from 'components/LogoutButton'
+import CircleIcon from 'components/SVGIcons/CircleIcon'
+import UserIcon from 'components/SVGIcons/UserIcon'
+import EnlightenIcon from 'components/SVGIcons/EnlightenIcon'
+
+import { useAuthContext } from 'context/AuthContext'
+import { useCircleContext } from 'context/CircleContext'
+
+import { circlePageStatus } from 'utils/constants'
+
+import { BJActions } from 'background/actions'
 
 const Header = () => {
   const { isAuthenticated, showLogoutBtn, setShowLogoutBtn } = useAuthContext()
@@ -16,7 +20,7 @@ const Header = () => {
   const [circlesCount, setCirclesCount] = useState(0)
 
   useEffect(() => {
-    (() => {
+    ;(() => {
       chrome.runtime.sendMessage(
         {
           action: BJActions.GET_UNIQUE_USERS_COUNT_IN_USER_CIRCLES,
@@ -31,7 +35,7 @@ const Header = () => {
   }, [])
 
   useEffect(() => {
-    (() => {
+    ;(() => {
       chrome.runtime.sendMessage(
         {
           action: BJActions.GET_USER_CIRCLE_COUNT,
@@ -39,7 +43,7 @@ const Header = () => {
         (res: any) => {
           if (res && !res.error) {
             setCirclesCount(res)
-          } else if(res && res.error) {
+          } else if (res && res.error) {
             console.log(res.error)
           } else {
             console.log('No response received.')
@@ -71,7 +75,7 @@ const Header = () => {
             }}
           >
             <div className="flex gap-1 items-center justify-between">
-              <CircleIcon width='12' height='12' viewBox='0 0 12 12' color='#424547' />
+              <CircleIcon width="12" height="12" viewBox="0 0 12 12" color="#424547" />
               <p className="text-xs font-medium">{circlesCount}</p>
             </div>
             <div className="flex gap-1 items-center justify-between">

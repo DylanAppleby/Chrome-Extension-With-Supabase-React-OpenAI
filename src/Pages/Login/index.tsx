@@ -1,13 +1,17 @@
 import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
-import FormLine from '../../components/FormLine'
-import LargeButton from '../../components/Buttons/LargeButton'
-import Header from '../../components/Header'
-import { Paths } from '../../utils/constants'
-import GoogleIcon from '../../components/SVGIcons/GoogleIcon'
-import { useAuthContext } from '../../context/AuthContext'
-import { BJActions, BJMessages } from '../../background/actions'
+import FormLine from 'components/FormLine'
+import Header from 'components/Header'
+
+import LargeButton from 'components/Buttons/LargeButton'
+import GoogleIcon from 'components/SVGIcons/GoogleIcon'
+
+import { useAuthContext } from 'context/AuthContext'
+
+import { BJActions, BJMessages } from 'background/actions'
+
+import { Paths } from 'utils/constants'
 
 interface LoginFormData {
   email: string
@@ -83,17 +87,20 @@ const Login = () => {
         <h2 className="text-3.5xl font-medium capitalize text-primary leading-normal">
           Browse, Explore, Connect.
         </h2>
-        <form onSubmit={handleSubmit(handleSignInWithEmailPassword)} className="space-y-4">
+        <form
+          onSubmit={handleSubmit(handleSignInWithEmailPassword)}
+          className="space-y-4"
+        >
           <FormLine
             title="Email"
             id="email"
             error={errors.email?.message}
-            {...register("email", {
-              required: "Email is required",
+            {...register('email', {
+              required: 'Email is required',
               pattern: {
                 value: /^\S+@\S+$/i,
-                message: "Entered value does not match email format"
-              }
+                message: 'Entered value does not match email format',
+              },
             })}
             placeholder="Your email address"
           />
@@ -103,7 +110,7 @@ const Login = () => {
             type="password"
             error={errors.password?.message}
             {...register('password', {
-              required: true
+              required: true,
             })}
             placeholder="Your password"
           />

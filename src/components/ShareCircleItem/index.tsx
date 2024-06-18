@@ -1,9 +1,12 @@
-import Send from "../SVGIcons/Send"
-import { CircleInterface } from "../../types/circle"
-import { Dispatch, SetStateAction, useCallback, useState } from "react"
-import { BJActions } from "../../background/actions"
-import LoadingSpinner from "../LoadingSpinner"
-import CheckIcon from "../SVGIcons/CheckIcon"
+import { Dispatch, SetStateAction, useCallback, useState } from 'react'
+
+import LoadingSpinner from 'components/LoadingSpinner'
+import CheckIcon from 'components/SVGIcons/CheckIcon'
+import Send from 'components/SVGIcons/Send'
+
+import { CircleInterface } from 'types/circle'
+
+import { BJActions } from 'background/actions'
 
 interface IShareCircleItem {
   circle: CircleInterface
@@ -13,25 +16,31 @@ interface IShareCircleItem {
   setErrorMessage: Dispatch<SetStateAction<string>>
 }
 
-const ShareCircleItem = ({ circle, comment, setComment, setShowCircles, setErrorMessage }: IShareCircleItem) => {
+const ShareCircleItem = ({
+  circle,
+  comment,
+  setComment,
+  setShowCircles,
+  setErrorMessage,
+}: IShareCircleItem) => {
   const [isSharing, setIsSharing] = useState(false)
   const [isShared, setIsShared] = useState(false)
 
   const handleShare = useCallback(() => {
     if (comment.length === 0) {
-      setErrorMessage('Please put your thought.');
-      return;
+      setErrorMessage('Please put your thought.')
+      return
     }
     setIsSharing(true)
     chrome.runtime.sendMessage(
       {
         action: BJActions.CREATE_POST,
         context: comment,
-        circleId: circle.id
+        circleId: circle.id,
       },
       (res) => {
         if (!res.error) {
-          setComment("")
+          setComment('')
           setIsSharing(false)
           setIsShared(true)
           setTimeout(() => {
@@ -49,9 +58,9 @@ const ShareCircleItem = ({ circle, comment, setComment, setShowCircles, setError
       type="button"
       onClick={handleShare}
     >
-      {isSharing ?
+      {isSharing ? (
         <LoadingSpinner size={20} />
-        :
+      ) : (
         <div className="w-full flex justify-between items-center">
           <img
             src={circle.circle_logo_image || `../duck.jpg`}
@@ -65,9 +74,10 @@ const ShareCircleItem = ({ circle, comment, setComment, setShowCircles, setError
             {circle.name}
           </p>
           <span className="text-white hidden group-hover:block">
-            {isShared ? <CheckIcon color="white"/> : <Send />}
+            {isShared ? <CheckIcon color="white" /> : <Send />}
           </span>
-        </div>}
+        </div>
+      )}
     </button>
   )
 }

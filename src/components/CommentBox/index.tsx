@@ -1,9 +1,8 @@
-import { ChangeEvent, useCallback, useState } from "react"
+import { ChangeEvent, useCallback, useState } from 'react'
 
-import Send from "../SVGIcons/Send"
-import XIcon from "../SVGIcons/XIcon"
-import LoadingSpinner from "../LoadingSpinner"
-
+import LoadingSpinner from 'components/LoadingSpinner'
+import Send from 'components/SVGIcons/Send'
+import XIcon from 'components/SVGIcons/XIcon'
 
 interface ICommentBox {
   circleImageUrl: string
@@ -12,7 +11,12 @@ interface ICommentBox {
   isCommenting: boolean
 }
 
-const CommentBox = ({ circleImageUrl, onComment, onClose, isCommenting }: ICommentBox) => {
+const CommentBox = ({
+  circleImageUrl,
+  onComment,
+  onClose,
+  isCommenting,
+}: ICommentBox) => {
   const [comment, setComment] = useState('')
 
   const handleCommentChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -37,20 +41,27 @@ const CommentBox = ({ circleImageUrl, onComment, onClose, isCommenting }: IComme
       <div className="w-full flex flex-col gap-y-4">
         <div className="w-full pt-4 px-5 flex justify-between items-center">
           <div className="flex items-center gap-x-2">
-            <p className="text-base font-semibold leading-normal text-brand">{`${isCommenting ? 'Sharing' : 'Share'}`} to</p>
+            <p className="text-base font-semibold leading-normal text-brand">
+              {`${isCommenting ? 'Sharing' : 'Share'}`} to
+            </p>
             <img
               src={circleImageUrl || `../duck.jpg`}
               alt="circle logo"
               className=" rounded-full min-w-[24px] h-6"
             />
           </div>
-          {isCommenting ?
+          {isCommenting ? (
             <LoadingSpinner size={24} />
-            :
+          ) : (
             <div className="flex gap-x-2">
-              <div className="cursor-pointer text-brand" onClick={handleSendIconClick}><Send /></div>
-              <div className="cursor-pointer text-brand" onClick={onClose}><XIcon width={24} height={24} /></div>
-            </div>}
+              <div className="cursor-pointer text-brand" onClick={handleSendIconClick}>
+                <Send />
+              </div>
+              <div className="cursor-pointer text-brand" onClick={onClose}>
+                <XIcon width={24} height={24} />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

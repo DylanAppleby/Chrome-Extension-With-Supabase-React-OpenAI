@@ -1,10 +1,13 @@
 import { Dispatch, SetStateAction, useCallback } from 'react'
 
-import { CircleInterface } from '../../types/circle'
-import RoundedButton from '../Buttons/RoundedButton'
-import { edenUrl } from '../../utils/constants'
-import { BJActions } from '../../background/actions'
-import { useCircleContext } from '../../context/CircleContext'
+import RoundedButton from 'components/Buttons/RoundedButton'
+
+import { useCircleContext } from 'context/CircleContext'
+
+import { CircleInterface } from 'types/circle'
+import { edenUrl } from 'utils/constants'
+
+import { BJActions } from 'background/actions'
 
 interface ILinkCircleItem {
   circle: CircleInterface
@@ -15,27 +18,44 @@ interface ILinkCircleItem {
   setIsShowingLinkCommentBox: Dispatch<SetStateAction<boolean>>
 }
 
-const LinkCircleItem = ({ circle, linkCommentBoxIndex, setActiveIndex, isCheckingIfSentComment,setIsCheckingIfSentComment, setIsShowingLinkCommentBox }: ILinkCircleItem) => {
-
+const LinkCircleItem = ({
+  circle,
+  linkCommentBoxIndex,
+  setActiveIndex,
+  isCheckingIfSentComment,
+  setIsCheckingIfSentComment,
+  setIsShowingLinkCommentBox,
+}: ILinkCircleItem) => {
   const { currentUrl } = useCircleContext()
 
-  const handleClaim = useCallback(
-    () => {
-      chrome.runtime.sendMessage({ action: BJActions.SAVE_LINK_STATUS_TO_STORAGE, url: currentUrl, circleId: circle.id, status: 'default' }, (res) => {
+  const handleClaim = useCallback(() => {
+    chrome.runtime.sendMessage(
+      {
+        action: BJActions.SAVE_LINK_STATUS_TO_STORAGE,
+        url: currentUrl,
+        circleId: circle.id,
+        status: 'default',
+      },
+      (res) => {
         if (res) {
           if (res.error) {
             console.log(res.error)
-          }
-          else {
+          } else {
             setActiveIndex(linkCommentBoxIndex)
             setIsCheckingIfSentComment(false)
             setIsShowingLinkCommentBox(true)
           }
         }
-      })
-    },
-    [circle, currentUrl, linkCommentBoxIndex, setActiveIndex, setIsCheckingIfSentComment, setIsShowingLinkCommentBox]
-  )
+      }
+    )
+  }, [
+    circle,
+    currentUrl,
+    linkCommentBoxIndex,
+    setActiveIndex,
+    setIsCheckingIfSentComment,
+    setIsShowingLinkCommentBox,
+  ])
 
   return (
     <a

@@ -1,13 +1,11 @@
 import { SupabaseClient } from '@supabase/supabase-js'
-import { CircleInterface } from '../types/circle'
-import { CircleGenerationStatus, supabaseSotrageUrl } from '../utils/constants'
-import {
-  getGeneratedCircles,
-  getGeneratedCirclesFromHistory,
-} from '../utils/edgeFunctions'
-import { getSpecificNumberOfWords, uploadImageToSupabase } from '../utils/helpers'
-import { IHistory } from '../types/history'
-// import { BJActions } from './actions'
+
+import { CircleGenerationStatus, supabaseSotrageUrl } from 'utils/constants'
+import { getGeneratedCircles, getGeneratedCirclesFromHistory } from 'utils/edgeFunctions'
+import { getSpecificNumberOfWords, uploadImageToSupabase } from 'utils/helpers'
+
+import { CircleInterface } from 'types/circle'
+import { IHistory } from 'types/history'
 
 // function to get a value from storage
 export const getFromStorage = (key: string): Promise<any> => {
@@ -145,7 +143,7 @@ export const handleCircleCreation = (
   isGenesisPost: boolean,
   type: string
 ) => {
-  console.log("handleCircleCreation function was invoked!");
+  console.log('handleCircleCreation function was invoked!')
   supabase
     .rpc('tags_add_new_return_all_ids', {
       tag_names: tagNames,
@@ -172,8 +170,8 @@ export const handleCircleCreation = (
       const addedCircleId = data
       try {
         // upload the converted image to Supabase storage
-        let result;
-        if (typeof (imageData) === 'string') {
+        let result
+        if (typeof imageData === 'string') {
           const imageBuffer = Uint8Array.from(atob(imageData), (c) =>
             c.charCodeAt(0)
           ).buffer
@@ -199,7 +197,7 @@ export const handleCircleCreation = (
               result: [],
             }
             console.log('circle was created successfully')
-            circleGeneratedStatus[type === "manual" ? "manual" : "direct"] = newCircle
+            circleGeneratedStatus[type === 'manual' ? 'manual' : 'direct'] = newCircle
             circleGeneratedStatus.auto = {}
             setToStorage(tabId.toString(), JSON.stringify(circleGeneratedStatus))
           })
@@ -207,7 +205,7 @@ export const handleCircleCreation = (
         const status = await updateCircleImageUrl(supabase, addedCircleId)
         if (!(status === 204)) {
           circleGenerationFailedHandler('manual', tabId)
-        }         
+        }
       } catch (err) {
         circleGenerationFailedHandler('manual', tabId)
         console.error(err)

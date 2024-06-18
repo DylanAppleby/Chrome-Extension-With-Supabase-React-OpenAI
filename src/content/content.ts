@@ -1,2 +1,3 @@
-console.log('Content sript running!')
+console.info('Content sript running!')
+
 export {}

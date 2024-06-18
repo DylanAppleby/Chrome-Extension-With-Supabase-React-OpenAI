@@ -86,14 +86,14 @@ export const resizeAndConvertImageToBuffer = async (
     const buffer = await blob.arrayBuffer()
     return new Uint8Array(buffer)
   }
-  const response = await fetch(imageUrl);
+  const response = await fetch(imageUrl)
   if (!response.ok) {
-    throw new Error(`Network response was not ok for URL: ${imageUrl}`);
+    throw new Error(`Network response was not ok for URL: ${imageUrl}`)
   }
-  const blob = await response.blob();
+  const blob = await response.blob()
   // Convert the Blob to an ArrayBuffer then to a Uint8Array
-  const buffer = await blob.arrayBuffer();
-  return new Uint8Array(buffer);
+  const buffer = await blob.arrayBuffer()
+  return new Uint8Array(buffer)
 }
 
 export const uploadImageToSupabase = async (
@@ -112,7 +112,7 @@ export const uploadImageToSupabase = async (
     if (error) {
       console.error(error)
     }
-    return data;
+    return data
   } catch (ex) {
     console.error('An error occurred on image uploading', ex)
   }

@@ -1,5 +1,6 @@
-import { CircleInterface } from '../../types/circle'
-import RoundedButton from '../Buttons/RoundedButton'
+import RoundedButton from 'components/Buttons/RoundedButton'
+
+import { CircleInterface } from 'types/circle'
 
 interface AutoCircleItemInterface {
   circle: CircleInterface
