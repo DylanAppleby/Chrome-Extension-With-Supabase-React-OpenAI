@@ -147,6 +147,9 @@ const AddGeneratedCircles = ({
   }, [isLoading]) // Empty dependency array means this effect runs once on mount
 
   const getCircles = useCallback(() => {
+    if (intervalId) {
+      clearInterval(intervalId)
+    }
     setIsLoading(true)
     setCircles([])
     if (currentTabId) {
@@ -169,7 +172,7 @@ const AddGeneratedCircles = ({
         }
       )
     }
-  }, [currentTabId, getCircleGenerationStatus, setCircles, url])
+  }, [currentTabId, getCircleGenerationStatus, intervalId, setCircles, url])
 
   useEffect(() => {
     if (
@@ -292,38 +295,32 @@ const AddGeneratedCircles = ({
             </div>
           )}
 
-            {!isLoading && isFailed && (
-              <div className="w-full h-80 flex flex-col items-center justify-center">
-                <p className="text-sm font-medium leading-normal text-center text-alert">Something went wrong!</p>
-              </div>
-            )}
-
-            {!isLoading && circles.length > 0 && (
-              <div className="w-full flex flex-col gap-1">
-                {circles.map((circle, index) => (
-                  <AutoCircleItem
-                    key={index}
-                    circle={circle}
-                    url={url}
-                    onAdd={() => handleAddClick(circle)}
-                    isCreatingCircle={isCreatingCircle}
-                  />
-                ))}
-              </div>
-            )}
-            {!isLoading && (
-              <div className="w-full flex justify-center">
-                <GenerateButton type="button" onClick={getCircles} disabled={isCreatingCircle}>
-                  <Refresh />
-                  <p>Generate {circles.length > 0 ? 'New' : ''}</p>
-                </GenerateButton>
-              </div>
-            )}
-            <RecommendedCircles circles={circles} tags={tags} />
+          {!isLoading && circles.length > 0 && (
+            <div className="w-full flex flex-col gap-1">
+              {circles.map((circle, index) => (
+                <AutoCircleItem
+                  key={index}
+                  circle={circle}
+                  url={url}
+                  onAdd={() => handleAddClick(circle)}
+                  isCreatingCircle={isCreatingCircle}
+                />
+              ))}
+            </div>
+          )}
+          {!isLoading && (
+            <div className="w-full flex justify-center">
+              <GenerateButton type="button" onClick={getCircles} disabled={isCreatingCircle}>
+                <Refresh />
+                <p>Generate {circles.length > 0 ? 'New' : ''}</p>
+              </GenerateButton>
+            </div>
+          )}
+          <RecommendedCircles circles={circles} tags={tags} />
         </div>
       </div>
       <div className="fixed bottom-6 w-fit justify-center flex flex-col gap-5">
-        <Button onClick={handleManualClick}>Create manually</Button>
+        <Button onClick={handleManualClick} disabled={isCreatingCircle}>Create manually</Button>
       </div>
     </div>
   )
