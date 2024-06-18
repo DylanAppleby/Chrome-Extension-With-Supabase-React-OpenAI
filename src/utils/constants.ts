@@ -1,5 +1,7 @@
 import { SUPABASE_URL } from './supabase'
 
+import { CircleInterface } from 'types/circle'
+
 export const circlePageStatus = {
   CIRCLE_LIST: 0,
   ADD_AUTOMATICALLY: 1,
@@ -31,4 +33,10 @@ export enum CircleGenerationStatus {
   GENERATING = 'generating',
   SUCCEEDED = 'succeeded',
   FAILED = 'failed',
+}
+
+export type TLinkSectionItems = {
+  item: CircleInterface
+  index?: number
+  isLinkCommentBox: boolean
 }

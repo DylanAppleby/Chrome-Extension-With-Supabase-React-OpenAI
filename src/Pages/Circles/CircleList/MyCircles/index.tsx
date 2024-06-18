@@ -9,6 +9,7 @@ import { useCircleContext } from 'context/CircleContext'
 import { CircleInterface } from 'types/circle'
 
 import { BJActions } from 'background/actions'
+import { TLinkSectionItems } from '@utils/constants'
 
 const MyCircles = () => {
   const [userCircles, setUserCircles] = useState<CircleInterface[]>([])
@@ -18,47 +19,47 @@ const MyCircles = () => {
   const [isCheckingIfSentComment, setIsCheckingIfSentComment] = useState<boolean>(false)
   const [isShowingLinkCommentBox, setIsShowingLinkCommentBox] = useState<boolean>(false)
 
-  const { currentUrl: url, currentPageCircleIds } = useCircleContext()
+  const { currentUrl, currentPageCircleIds } = useCircleContext()
 
   const getUserCircles = useCallback(async () => {
-    if (url !== '') {
-      chrome.runtime.sendMessage({ action: BJActions.GET_USER_CIRCLES }, (response) => {
-        if (response.error) {
-          setUserCircles([])
-          setIsLoading(false)
-        } else {
-          if (response.data) {
-            setUserCircles(response.data)
-            setIsLoading(false)
-          } else {
-            setUserCircles([])
-            setIsLoading(false)
-          }
-        }
-      })
+    if (!currentUrl) {
+      return
     }
-  }, [url])
+
+    chrome.runtime.sendMessage({ action: BJActions.GET_USER_CIRCLES }, (response) => {
+      if (response.error) {
+        setUserCircles([])
+        setIsLoading(false)
+
+        return
+      }
+
+      if (response.data) {
+        setUserCircles(response.data)
+        setIsLoading(false)
+      } else {
+        setUserCircles([])
+        setIsLoading(false)
+      }
+    })
+  }, [currentUrl])
 
   useEffect(() => {
     getUserCircles()
   }, [getUserCircles])
 
-  const linkSectionItems = useMemo((): {
-    item: CircleInterface
-    index?: number
-    isLinkCommentBox: boolean
-  }[] => {
+  const linkSectionItems = useMemo((): TLinkSectionItems[] => {
     const circleItems = userCircles.filter(
       (userCircle) => !currentPageCircleIds.includes(userCircle.id)
     )
     const circleSectionItem = circleItems.map((item, index) => ({
-      item: item,
+      item,
       index,
       isLinkCommentBox: false,
     }))
 
     if (activeIndex >= 0) {
-      const insertIndex = activeIndex + (activeIndex % 2 === 0 ? 2 : 1)
+      const insertIndex = activeIndex + (activeIndex % 2 ? 1 : 2)
 
       const newSectionItems = []
 
@@ -68,8 +69,6 @@ const MyCircles = () => {
         isLinkCommentBox: true,
       })
       newSectionItems.push(...circleSectionItem.slice(insertIndex))
-
-      // console.log(newSectionItems, activeIndex, insertIndex, newSectionItems.length);
 
       return newSectionItems
     } else {
@@ -86,11 +85,6 @@ const MyCircles = () => {
       }
     }
   }, [isLoading, linkSectionItems])
-
-  // it's not needed right now but maybe later we will need to look at the content
-  // useEffect(() => {
-  //   chrome.runtime.connect({name: "popup"})
-  // },[])
 
   return (
     <div

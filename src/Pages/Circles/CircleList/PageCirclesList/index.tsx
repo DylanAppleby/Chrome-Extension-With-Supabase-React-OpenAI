@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import CircleItem from 'components/CircleItem'
 
 import { useCircleContext } from 'context/CircleContext'
+
 import { BJActions } from 'background/actions'
 
 const PageCircleList = () => {
