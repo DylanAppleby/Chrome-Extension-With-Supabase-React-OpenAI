@@ -322,9 +322,6 @@ const AddGeneratedCircles = ({
             )}
             <RecommendedCircles circles={circles} tags={tags} />
         </div>
-        <div className="fixed bottom-6 w-fit justify-center flex flex-col gap-5">
-          <Button onClick={handleManualClick} disabled={isCreatingCircle}>Create manually</Button>
-        </div>
       </div>
       <div className="fixed bottom-6 w-fit justify-center flex flex-col gap-5">
         <Button onClick={handleManualClick}>Create manually</Button>
