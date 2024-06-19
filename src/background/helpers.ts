@@ -159,7 +159,7 @@ export const handleCircleCreation = (
       const addedTags = result.data
 
       const { data } = await supabase.rpc(
-        `${isGenesisPost ? GENESIS_CIRCLE_CREATION_FUNC_NAME : GENERAL_CIRCLE_CREATION_FUNC_NAME}}`,
+        `${isGenesisPost ? GENESIS_CIRCLE_CREATION_FUNC_NAME : GENERAL_CIRCLE_CREATION_FUNC_NAME}`,
         {
           p_circle_name: name,
           p_url: pageUrl,
