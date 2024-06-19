@@ -39,7 +39,7 @@ const bannedURLList: string[] = [
   'https://www.bilibili.com/',
 ]
 
-console.log('Background.js is running')
+console.info('Background.js is running')
 
 interface SupabaseUserDataInterface {
   data?: {
@@ -68,23 +68,26 @@ const loginWithEmailPassword = async (email: string, password: string) => {
     email,
     password,
   })
+
   if (error) {
     console.log('background.js: Error logging in: ', error)
     return false
   }
+
   userLoaded = true
   supabaseUser = (await supabase.auth.getUser()) as SupabaseUserDataInterface
-  console.log('background.js: New supabase user: ', supabaseUser)
+
   const session = await supabase.auth.getSession()
   setToStorage('supabaseSession', JSON.stringify(session))
+
   chrome.runtime.sendMessage({ loggedIn: true })
+
   return true
 }
 
 const loginWithGoogle = async () => {
   try {
     const manifest: any = chrome.runtime.getManifest() as chrome.runtime.Manifest
-    console.log(chrome.runtime.id)
 
     const url = new URL('https://accounts.google.com/o/oauth2/auth')
     url.searchParams.set('client_id', manifest.oauth2.client_id)
@@ -101,15 +104,17 @@ const loginWithGoogle = async () => {
       async (redirectedTo: any) => {
         if (chrome.runtime.lastError) {
           console.error('Authentication failed:', chrome.runtime.lastError.message)
+
           chrome.runtime.sendMessage({
             message: BJMessages.GOOGLE_LOGIN_RESULT,
             loggedIn: false,
           })
+
           return
         }
 
         const redirectedURL = new URL(redirectedTo)
-        const params = new URLSearchParams(redirectedURL.hash.substring(1)) // Remove the leading '#'
+        const params = new URLSearchParams(redirectedURL.hash.substring(1))
 
         const idToken = params.get('id_token')
         if (idToken) {
@@ -124,11 +129,13 @@ const loginWithGoogle = async () => {
               message: BJMessages.GOOGLE_LOGIN_RESULT,
               loggedIn: false,
             })
+
             return
           }
 
           userLoaded = true
           const { session, user } = data
+
           supabaseUser = {
             data: {
               user,
@@ -140,7 +147,9 @@ const loginWithGoogle = async () => {
               session,
             },
           }
+
           setToStorage('supabaseSession', JSON.stringify(newSession))
+
           chrome.runtime.sendMessage({
             message: BJMessages.GOOGLE_LOGIN_RESULT,
             loggedIn: true,
@@ -151,12 +160,14 @@ const loginWithGoogle = async () => {
             message: BJMessages.GOOGLE_LOGIN_RESULT,
             loggedIn: false,
           })
+
           return
         }
       }
     )
   } catch (error) {
     console.error('Error during login:', error)
+
     chrome.runtime.sendMessage({
       message: BJMessages.GOOGLE_LOGIN_RESULT,
       loggedIn: false,
@@ -169,14 +180,15 @@ const loginWithGoogle = async () => {
 const loginUserWithSession = async () => {
   console.log('Logging in with session')
   const session = await getFromStorage('supabaseSession')
+
   if (session) {
-    console.log('background.js: Session exists, logging in with session: ', session)
     if (session?.data?.session?.access_token && session?.data?.session?.refresh_token) {
       await supabase.auth.setSession({
         access_token: session.data.session.access_token,
         refresh_token: session.data.session.refresh_token,
       })
     }
+
     const newSession = await supabase.auth.getSession()
     setToStorage('supabaseSession', JSON.stringify(newSession))
     chrome.runtime.sendMessage({ loggedIn: true })
@@ -186,9 +198,11 @@ const loginUserWithSession = async () => {
 }
 
 const logout = async () => {
-  console.log('Supabase log out')
   const { error } = await supabase.auth.signOut()
-  if (error) console.log('An error occurred on log out')
+  if (error) {
+    console.log('An error occurred on log out')
+  }
+
   setToStorage('supabaseSession', '')
   supabaseUser = {}
   userLoaded = false
@@ -196,21 +210,31 @@ const logout = async () => {
 
 // get user name from saved supabaseUser variable
 const getUserAvatarUrl = async () => {
-  console.log(
-    'background.js: Getting user avatar url with id: ',
-    supabaseUser?.data?.user?.id
-  )
   try {
     const response = await supabase
       .from('users')
       .select('avatar_url')
       .eq('id', supabaseUser?.data?.user?.id)
     console.log('background.js: Result of getUserAvatarUrl: ', response)
+
     return response
   } catch (error) {
     console.error('background.js: Error in getUserAvatarUrl: ', error)
+
     throw new Error('Error getting user avatar url.')
   }
+}
+
+const getUserInfoAfterLogin = async () => {
+  await loginUserWithSession()
+  const supabaseUserInfo = (await supabase.auth.getUser()) as SupabaseUserDataInterface
+
+  if (supabaseUserInfo) {
+    userLoaded = true
+    return supabaseUserInfo
+  }
+
+  throw Error('Error getting user info after login.')
 }
 
 // this function tries to get user if user already logged in
@@ -218,35 +242,33 @@ const getUserAvatarUrl = async () => {
 const getUser = async () => {
   if (userLoaded) {
     return supabaseUser
-  } else {
-    console.log('background.js: Checking if user exists.')
-    // check if user exists
-    try {
-      const { data: user, error } = await supabase.auth.getUser()
-      if (error) {
-        // we log in failed,
-        console.log('background.js: Check log in error: ', error)
-        await loginUserWithSession()
-        supabaseUser = (await supabase.auth.getUser()) as SupabaseUserDataInterface
-      } else {
-        if (user) {
-          console.log('background.js: User: ', user)
-          supabaseUser = user as SupabaseUserDataInterface
-        } else {
-          await loginUserWithSession()
-          supabaseUser = (await supabase.auth.getUser()) as SupabaseUserDataInterface
-        }
-      }
-    } catch (error) {
-      console.log('background.js: Error getting user: ', error)
-      console.log('background.js: We will check if session exists')
-      // we first get the session from storage
-      loginUserWithSession()
-      supabaseUser = (await supabase.auth.getUser()) as SupabaseUserDataInterface
-    }
-    userLoaded = true
   }
-  return supabaseUser
+
+  console.log('background.js: Checking if user exists.')
+  try {
+    const session = await getFromStorage('supabaseSession')
+    if (session) {
+      console.log('background.js: Session exists.')
+      const { data: user, error } = await supabase.auth.getUser()
+
+      if (error) {
+        throw Error('background.js: Check log in error: ', error)
+      }
+
+      if (user) {
+        console.log('background.js: User: ', user)
+        userLoaded = true
+        return user as SupabaseUserDataInterface
+      }
+    } else {
+      return await getUserInfoAfterLogin()
+    }
+  } catch (error) {
+    console.log('background.js: Error getting user: ', error)
+    return await getUserInfoAfterLogin()
+  }
+
+  return null
 }
 
 const showCircleCount = async (url: string) => {
@@ -321,13 +343,13 @@ async function handleGenerateDirectCircle(request: any, sendResponse: any) {
     }
 
     // Update the storage status
-    generationStatus[request.type === "manual" ? "manual" : "direct"] = newCircle
+    generationStatus[request.type === 'manual' ? 'manual' : 'direct'] = newCircle
     setToStorage(tabId.toString(), JSON.stringify(generationStatus))
 
     // Call an asynchronous function to generate the circle image
     const imageResult = await generateCircleImage(undefined, name, description)
     if (imageResult.error) {
-      generationStatus[request.type === "manual" ? "manual" : "direct"] = {
+      generationStatus[request.type === 'manual' ? 'manual' : 'direct'] = {
         ...newCircle,
         status: CircleGenerationStatus.FAILED,
       }
@@ -340,7 +362,7 @@ async function handleGenerateDirectCircle(request: any, sendResponse: any) {
     const imageUrl = imageResult.url.replace(/"/g, '')
     const imageData = await resizeAndConvertImageToBuffer(imageUrl, 'background')
 
-    generationStatus[request.type === "manual" ? "manual" : "direct"] = {
+    generationStatus[request.type === 'manual' ? 'manual' : 'direct'] = {
       type: request.type,
       status: CircleGenerationStatus.GENERATING,
       result: [
@@ -364,9 +386,7 @@ async function handleGenerateDirectCircle(request: any, sendResponse: any) {
       name,
       description,
       imageData,
-      tags.length
-        ? tags
-        : await generateTags(name, description),
+      tags.length ? tags : await generateTags(name, description),
       request.isGenesisPost,
       request.type
     )
@@ -380,7 +400,7 @@ async function handleGenerateDirectCircle(request: any, sendResponse: any) {
 }
 
 async function handleGenerateCircleImageAndUploadToSupabaseStorage(request: any) {
-  const { circleId, name, description } = request;
+  const { circleId, name, description } = request
   const imageResult = await generateCircleImage(undefined, name, description)
   const imageUrl = imageResult.url.replace(/"/g, '')
   const imageData = await resizeAndConvertImageToBuffer(imageUrl, 'background')
@@ -393,8 +413,8 @@ async function handleGenerateCircleImageAndUploadToSupabaseStorage(request: any)
     await supabase
       .from('circles')
       .update({ circle_logo_image: `${supabaseSotrageUrl}/media_bucket/${result?.path}` })
-      .eq('id', circleId);
-    console.log('circle Image was created successfully!');
+      .eq('id', circleId)
+    console.log('circle Image was created successfully!')
   }
 }
 
@@ -402,9 +422,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === BJActions.CHECK_LOGGED_IN) {
     // This is an example async function, replace with your own
     getUser()
-      .then((result) => {
+      .then((result: SupabaseUserDataInterface | null) => {
         console.log('background.js: Result of checkLoggedIn', result)
         if (result?.data?.user) {
+          supabaseUser = result
           sendResponse(true)
         } else {
           sendResponse(false)
@@ -568,7 +589,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if (request.action === BJActions.CREATE_AUTO_CIRCLE) {
     console.log('background.js: Creating the auto circle')
-    const { url, name, description, tags, isGenesisPost } = request;
+    const { url, name, description, tags, isGenesisPost } = request
+
     if (supabaseUser) {
       supabase
         .rpc('tags_add_new_return_all_ids', {
@@ -577,8 +599,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         .then(async (result) => {
           const addedTags = result.data
 
-          const genesisPostCircleCreationFuncName = 'circles_checkpoint_add_new_with_genesis_post'
-          const generalCircleCreationFuncName = 'circles_checkpoint_add_new_with_tags_return_id'
+          const genesisPostCircleCreationFuncName =
+            'circles_checkpoint_add_new_with_genesis_post'
+          const generalCircleCreationFuncName =
+            'circles_checkpoint_add_new_with_tags_return_id'
           const { data } = await supabase.rpc(
             `${isGenesisPost ? genesisPostCircleCreationFuncName : generalCircleCreationFuncName}`,
             {
@@ -588,14 +612,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               circle_tags: addedTags,
             }
           )
-          setToStorage('circleId', JSON.stringify(data));
-          sendResponse(data);
+
+          sendResponse(data)
         })
     } else {
       console.error('background.js: User not logged in when calling getUserCircles')
       sendResponse({ error: 'User not logged in' })
     }
-    return true;
+    return true
   }
 
   if (request.action === BJActions.CREATE_CIRCLE) {
@@ -1071,7 +1095,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       setToStorage('circleIdForLink', JSON.stringify(circleId))
       sendResponse(status)
     } else {
-      sendResponse({ error: 'Error is occurred while saving the link status to storage.' })
+      sendResponse({
+        error: 'Error is occurred while saving the link status to storage.',
+      })
     }
     return true
   }
@@ -1086,13 +1112,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       })
       sendResponse(true)
     } else {
-      sendResponse({ error: 'Error is occurred while saving the link status to storage.' })
+      sendResponse({
+        error: 'Error is occurred while saving the link status to storage.',
+      })
     }
     return true
   }
   if (request.action === BJActions.GENERATE_CIRCLE_IMAGE_AND_UPLOAD_TO_SUPABASE_STORAGE) {
-    console.log('background.js: Generating circle image and uploading to supabase storage')
-    handleGenerateCircleImageAndUploadToSupabaseStorage(request);
+    console.log(
+      'background.js: Generating circle image and uploading to supabase storage'
+    )
+    handleGenerateCircleImageAndUploadToSupabaseStorage(request)
     return true
   }
 })

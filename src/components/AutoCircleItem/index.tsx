@@ -1,18 +1,76 @@
-import { CircleInterface } from 'types/circle'
+import { FC, useCallback, useState } from 'react'
+import classNames from 'classnames'
+
 import RoundedButton from 'components/Buttons/RoundedButton'
-import { useCircleContext } from 'context/CircleContext'
 import LoadingSpinner from 'components/LoadingSpinner'
-interface AutoCircleItemInterface {
+
+import { useCircleContext } from 'context/CircleContext'
+
+import { CircleInterface } from 'types/circle'
+import { removeItemFromStorage } from 'background/helpers'
+import { BJActions } from 'background/actions'
+import { circlePageStatus } from 'utils/constants'
+
+type AutoCircleItemProps = {
   circle: CircleInterface
-  url: string
-  isCreatingCircle: boolean
-  onAdd: () => void
+  circleTagList: string[]
+  onCircleCreation?: () => void
 }
 
-const AutoCircleItem = ({ circle, isCreatingCircle, onAdd }: AutoCircleItemInterface) => {
-  const { circleData } = useCircleContext();
-  const isCurrentCircle = circleData.name === circle.name;
-  const shouldHideOnHover = isCreatingCircle && !isCurrentCircle;
+const AutoCircleItem: FC<AutoCircleItemProps> = (props) => {
+  const { circle, circleTagList, onCircleCreation } = props
+
+  const [isCreatingCircle, setIsCreatingCircle] = useState(false)
+
+  const { currentUrl, currentTabId, setPageStatus, isGenesisPost } = useCircleContext()
+
+  const handleAddClick = useCallback(() => {
+    setIsCreatingCircle(true)
+
+    const circleData = circle
+    const { name, description } = circleData
+
+    chrome.runtime.sendMessage(
+      {
+        action: BJActions.CREATE_AUTO_CIRCLE,
+        url: currentUrl,
+        name,
+        description,
+        tags: circleTagList,
+        isGenesisPost,
+      },
+      (response) => {
+        if (response.error) {
+          console.log(response.error)
+          return
+        }
+
+        const circleId = response
+
+        removeItemFromStorage(currentTabId.toString())
+        setPageStatus(circlePageStatus.CIRCLE_LIST)
+
+        chrome.runtime.sendMessage({
+          action: BJActions.GENERATE_CIRCLE_IMAGE_AND_UPLOAD_TO_SUPABASE_STORAGE,
+          circleId,
+          name,
+          description,
+        })
+
+        setIsCreatingCircle(false)
+      }
+    )
+
+    onCircleCreation?.()
+  }, [
+    circle,
+    circleTagList,
+    currentTabId,
+    currentUrl,
+    isGenesisPost,
+    onCircleCreation,
+    setPageStatus,
+  ])
 
   return (
     <div className="p-4 transition-transform transform border border-stroke hover:bg-gray-100 flex gap-4 items-center rounded-2xl group">
@@ -40,8 +98,18 @@ const AutoCircleItem = ({ circle, isCreatingCircle, onAdd }: AutoCircleItemInter
         </div>
       </div>
 
-      <div className={`${isCurrentCircle ? 'block' : 'hidden'} ${shouldHideOnHover ? 'group-hover:hidden' : 'group-hover:block'}`}>
-        {(isCurrentCircle && isCreatingCircle) ? <LoadingSpinner /> : <RoundedButton onClick={onAdd} disabled={isCreatingCircle}>Add</RoundedButton>}
+      <div
+        className={classNames('', {
+          'group-hover:block hidden': !isCreatingCircle,
+        })}
+      >
+        {isCreatingCircle ? (
+          <LoadingSpinner />
+        ) : (
+          <RoundedButton onClick={handleAddClick} disabled={isCreatingCircle}>
+            Add
+          </RoundedButton>
+        )}
       </div>
     </div>
   )
