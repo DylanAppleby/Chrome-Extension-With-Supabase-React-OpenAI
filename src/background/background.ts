@@ -11,6 +11,11 @@ import {
   removeItemFromStorage,
   setToStorage,
 } from './helpers'
+import {
+  createCircleInAutomatedMode,
+  getCircleExistanceStatus,
+  getCircleOfUrl,
+} from './supabase'
 import { BJActions, BJMessages } from './actions'
 import { generateCircleImage, generateTags } from 'utils/edgeFunctions'
 import { resizeAndConvertImageToBuffer, uploadImageToSupabase } from 'utils/helpers'
@@ -271,24 +276,21 @@ const getUser = async () => {
   return null
 }
 
-const showCircleCount = async (url: string) => {
-  return new Promise<void>((resolve, reject) => {
+export const updateCircleCountOnPage = (url: string) =>
+  new Promise<void>((resolve, reject) => {
     if (url) {
-      ;(
-        supabase.rpc('circles_get_circles_by_url', {
+      supabase
+        .rpc('circles_get_circles_by_url', {
           p_url: url,
-        }) as unknown as Promise<any>
-      )
-        .then(async (result) => {
+        })
+        .then((result) => {
           if (result.data?.length > 0) {
-            await chrome.action.setBadgeText(
-              { text: result.data.length.toString() },
-              resolve
-            )
+            chrome.action.setBadgeText({ text: result.data.length.toString() }, resolve)
           } else {
-            await chrome.action.setBadgeText({ text: '' }, resolve)
+            chrome.action.setBadgeText({ text: '' }, resolve)
           }
         })
+        // @ts-ignore Simple type issue
         .catch((error: any) => {
           reject(error)
         })
@@ -296,7 +298,6 @@ const showCircleCount = async (url: string) => {
       resolve()
     }
   })
-}
 
 const checkIfUserJoinedCircle = async (circleId: string) => {
   console.log('background.js: checkIfUserJoinedCircle function')
@@ -441,12 +442,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === BJActions.CHECK_IF_CIRCLE_EXIST) {
     console.log('background.js: Check if circle already exist')
     if (supabaseUser) {
-      supabase
-        .rpc('check_if_circle_exist', { circle_name: request.name })
-        .then((result) => {
-          sendResponse(result.data)
-        })
+      const circleName = request.name
+      getCircleExistanceStatus(circleName, sendResponse)
     }
+
     return true // This will keep the message channel open until sendResponse is executed
   }
 
@@ -525,12 +524,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === BJActions.GET_CIRCLES) {
     console.log('background.js: Getting circles')
     if (supabaseUser) {
-      supabase
-        .rpc('circles_get_circles_by_url', { p_url: request.url })
-        .then((result) => {
-          console.log('background.js: result of getting circles: ', result)
-          sendResponse(result)
-        })
+      const pageUrl = request.url
+      getCircleOfUrl(pageUrl, sendResponse)
     } else {
       console.error('background.js: User not logged in when calling getCircles')
       sendResponse({ error: 'User not logged in' })
@@ -592,29 +587,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const { url, name, description, tags, isGenesisPost } = request
 
     if (supabaseUser) {
-      supabase
-        .rpc('tags_add_new_return_all_ids', {
-          tag_names: tags,
-        })
-        .then(async (result) => {
-          const addedTags = result.data
-
-          const genesisPostCircleCreationFuncName =
-            'circles_checkpoint_add_new_with_genesis_post'
-          const generalCircleCreationFuncName =
-            'circles_checkpoint_add_new_with_tags_return_id'
-          const { data } = await supabase.rpc(
-            `${isGenesisPost ? genesisPostCircleCreationFuncName : generalCircleCreationFuncName}`,
-            {
-              p_circle_name: name,
-              p_url: url,
-              p_circle_description: description,
-              circle_tags: addedTags,
-            }
-          )
-
-          sendResponse(data)
-        })
+      createCircleInAutomatedMode(
+        url,
+        name,
+        description,
+        tags,
+        isGenesisPost,
+        sendResponse
+      )
     } else {
       console.error('background.js: User not logged in when calling getUserCircles')
       sendResponse({ error: 'User not logged in' })
@@ -982,7 +962,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.action === BJActions.SHOW_CIRCLE_COUNT) {
-    showCircleCount(request.url)
+    updateCircleCountOnPage(request.url)
       .then(() => {
         sendResponse({ message: 'circle badge number has been updated' })
       })
@@ -1144,7 +1124,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   }
   // execute a content script to get the text content of the page
   if (supabaseUser && changeInfo.url) {
-    await showCircleCount(changeInfo.url)
+    await updateCircleCountOnPage(changeInfo.url)
   }
 })
 
@@ -1158,7 +1138,7 @@ chrome.tabs.onActivated.addListener((actveInfo) => {
   chrome.tabs.get(actveInfo.tabId, async (tab) => {
     const url = tab.url
     if (url) {
-      await showCircleCount(url)
+      await updateCircleCountOnPage(url)
     }
   })
 })

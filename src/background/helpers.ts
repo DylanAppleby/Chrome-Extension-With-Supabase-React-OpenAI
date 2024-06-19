@@ -7,6 +7,9 @@ import { getSpecificNumberOfWords, uploadImageToSupabase } from 'utils/helpers'
 import { CircleInterface } from 'types/circle'
 import { IHistory } from 'types/history'
 
+const GENESIS_CIRCLE_CREATION_FUNC_NAME = 'circles_checkpoint_add_new_with_genesis_post'
+const GENERAL_CIRCLE_CREATION_FUNC_NAME = 'circles_checkpoint_add_new_with_tags_return_id'
+
 // function to get a value from storage
 export const getFromStorage = (key: string): Promise<any> => {
   return new Promise((resolve, reject) => {
@@ -89,7 +92,10 @@ export const handleCircleGeneration = (
 ) => {
   getGeneratedCircles(pageUrl, pageContent)
     .then((circleGenerationResult: any) => {
-      if (circleGenerationResult?.error && circleGenerationResult?.error === 'context_length_exceeded') {
+      if (
+        circleGenerationResult?.error &&
+        circleGenerationResult?.error === 'context_length_exceeded'
+      ) {
         const limitedWords = getSpecificNumberOfWords(pageContent, 5000)
 
         getGeneratedCircles(pageUrl, limitedWords).then((reSubmittedResult: any) => {
@@ -152,12 +158,8 @@ export const handleCircleCreation = (
     .then(async (result) => {
       const addedTags = result.data
 
-      const genesisPostCircleCreationFuncName =
-        'circles_checkpoint_add_new_with_genesis_post'
-      const generalCircleCreationFuncName =
-        'circles_checkpoint_add_new_with_tags_return_id'
       const { data } = await supabase.rpc(
-        `${isGenesisPost ? genesisPostCircleCreationFuncName : generalCircleCreationFuncName}`,
+        `${isGenesisPost ? GENESIS_CIRCLE_CREATION_FUNC_NAME : GENERAL_CIRCLE_CREATION_FUNC_NAME}}`,
         {
           p_circle_name: name,
           p_url: pageUrl,
@@ -165,9 +167,11 @@ export const handleCircleCreation = (
           circle_tags: addedTags,
         }
       )
+
       if (!data) {
         return
       }
+
       const addedCircleId = data
       try {
         // upload the converted image to Supabase storage
