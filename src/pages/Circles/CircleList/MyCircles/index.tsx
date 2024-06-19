@@ -9,7 +9,7 @@ import { useCircleContext } from 'context/CircleContext'
 import { CircleInterface } from 'types/circle'
 
 import { BJActions } from 'background/actions'
-import { TLinkSectionItems } from '@utils/constants'
+import { TLinkSectionItems } from 'utils/constants'
 
 const MyCircles = () => {
   const [userCircles, setUserCircles] = useState<CircleInterface[]>([])

@@ -36,8 +36,8 @@ const AddCircle = () => {
     <div className="w-full h-full flex flex-col items-center justify-center p-5">
       {pageStatus === circlePageStatus.ADD_AUTOMATICALLY && (
         <AddGeneratedCircles
-          generatedCircles={generatedCircles}
-          setGeneratedCircles={setGeneratedCircles}
+          circles={generatedCircles}
+          setCircles={setGeneratedCircles}
         />
       )}
       {pageStatus === circlePageStatus.ADD_MANUALLY && <AddManualCircle />}
