@@ -1,5 +1,4 @@
 import { CircleGenerationStatus } from 'utils/constants'
-
 export interface CircleInterface {
   id: string
   name: string
@@ -12,4 +11,5 @@ export interface ICircleGenerationStatus {
   type: 'auto' | 'manual' | 'direct'
   status: CircleGenerationStatus
   result: CircleInterface[]
+  uuid?: string
 }

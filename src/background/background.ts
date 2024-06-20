@@ -718,11 +718,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       'background.js: Getting generated circles from the Edge function and saving it to local storage'
     )
     if (supabaseUser) {
-      const tabId = request.tabId
+      const { tabId, uuid, pageUrl, pageContent } = request;
       const generatingCircles: ICircleGenerationStatus = {
         type: 'auto',
         status: CircleGenerationStatus.GENERATING,
         result: [],
+        uuid
       }
 
       circleGeneratedStatus.auto = generatingCircles
@@ -730,7 +731,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       setToStorage(tabId.toString(), JSON.stringify(circleGeneratedStatus))
 
       try {
-        handleCircleGeneration(tabId, request.pageUrl, request.pageContent)
+        handleCircleGeneration(tabId, pageUrl, pageContent, uuid)
         sendResponse(true)
       } catch (err) {
         sendResponse(false)
