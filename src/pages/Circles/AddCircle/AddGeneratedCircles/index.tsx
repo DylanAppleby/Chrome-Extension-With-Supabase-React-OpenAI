@@ -28,6 +28,7 @@ import { getCircleLoadingMessage } from 'utils/helpers'
 import { CircleGenerationStatus, circlePageStatus } from 'utils/constants'
 
 import { BJActions } from 'background/actions'
+import { v4 } from 'uuid'
 
 type AddGeneratedCirclesProps = {
   circles: CircleInterface[]
@@ -109,12 +110,14 @@ const AddGeneratedCircles: FC<AddGeneratedCirclesProps> = (props) => {
       chrome.runtime.sendMessage(
         { action: BJActions.GET_PAGE_CONTENT, tabId: currentTabId },
         (response) => {
+          const uuid = v4();
           chrome.runtime.sendMessage(
             {
               action: BJActions.GENERATE_CIRCLES,
               pageUrl: currentUrl,
               pageContent: response,
               tabId: currentTabId,
+              uuid
             },
             (res: boolean) => {
               if (res) {
