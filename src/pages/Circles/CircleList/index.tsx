@@ -7,7 +7,6 @@ import Header from 'components/Header'
 import Avatar from 'components/Avatar'
 import CircleCreateButton from 'components/CircleCreateButton'
 import ShareThoughtBox from 'components/ShareThoughtBox'
-import LoadingSpinner from 'components/LoadingSpinner'
 
 import { initialCircleData } from 'context/CircleContext'
 import { useCircleContext } from 'context/CircleContext'
@@ -27,11 +26,6 @@ const CircleList = () => {
     setCircleData,
     currentTabId,
     setCircleGenerationStatus,
-    isOneClickCommenting,
-    oneClickStatusMessage,
-    setIsOneClickCommenting,
-    commentData,
-    setCommentData,
   } = useCircleContext()
 
   const resultTextRef = useRef<HTMLDivElement>(null)
@@ -49,22 +43,9 @@ const CircleList = () => {
         tabId: currentTabId,
       })
 
-      chrome.runtime.sendMessage({
-        action: BJActions.REMOVE_COMMENT_FROM_STORAGE,
-      })
-      setIsOneClickCommenting(false)
-      setCommentData('')
-
       setCircleGenerationStatus(null)
     }
-  }, [
-    circleGenerationStatus?.status,
-    currentTabId,
-    setCircleData,
-    setCircleGenerationStatus,
-    setCommentData,
-    setIsOneClickCommenting,
-  ])
+  }, [circleGenerationStatus?.status, currentTabId, setCircleData, setCircleGenerationStatus])
 
   const resultText = useMemo(() => {
     if (!isLoading) {
@@ -100,18 +81,7 @@ const CircleList = () => {
       setShowAvatar(true)
     }
   }, [])
-  return isOneClickCommenting || commentData ? (
-    <div className="w-full border-gray-600 flex flex-col gap-y-4 p-5">
-      <div className="w-full flex items-center gap-x-5">
-        <LoadingSpinner size={20} />
-        <div className="flex-1 text-left">
-          <p className="text-sm font-bold leading-normal text-primary">
-            {oneClickStatusMessage}
-          </p>
-        </div>
-      </div>
-    </div>
-  ) : (
+  return (
     <div
       className="w-full h-140 flex flex-col items-center gap-5 overflow-y-auto overflow-x-hidden scrollbar-none pb-5"
       onScroll={handleScroll}

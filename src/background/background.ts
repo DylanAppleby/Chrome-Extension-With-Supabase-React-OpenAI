@@ -587,14 +587,31 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const { url, name, description, tags, isGenesisPost } = request
 
     if (supabaseUser) {
-      createCircleInAutomatedMode(
-        url,
-        name,
-        description,
-        tags,
-        isGenesisPost,
-        sendResponse
-      )
+
+      if (tags === '') {
+        generateTags(name, description).then(
+          (addedTagNames: string[]) => {
+            createCircleInAutomatedMode(
+              url,
+              name,
+              description,
+              addedTagNames,
+              isGenesisPost,
+              sendResponse
+            )
+          }
+        )
+      } else {
+        createCircleInAutomatedMode(
+          url,
+          name,
+          description,
+          tags,
+          isGenesisPost,
+          sendResponse
+        )
+      }
+
     } else {
       console.error('background.js: User not logged in when calling getUserCircles')
       sendResponse({ error: 'User not logged in' })
