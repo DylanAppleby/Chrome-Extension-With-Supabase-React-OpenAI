@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import classNames from 'classnames'
 
 import Button from 'components/Buttons/Button'
 import Plus from 'components/SVGIcons/Plus'
@@ -10,7 +11,6 @@ import { circlePageStatus } from 'utils/constants'
 
 import { BJActions } from 'background/actions'
 import LoadingSpinner from 'components/LoadingSpinner'
-import classNames from 'classnames'
 
 const CircleCreateButton = () => {
   const { setPageStatus, currentTabId, setCircleData, setCircleGenerationStatus, isOneClickCommenting } =

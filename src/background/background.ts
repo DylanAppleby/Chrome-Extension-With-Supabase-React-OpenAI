@@ -588,7 +588,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     if (supabaseUser) {
 
-      if (tags === '') {
+      if (tags) {
+        createCircleInAutomatedMode(
+          url,
+          name,
+          description,
+          tags,
+          isGenesisPost,
+          sendResponse
+        )
+      } else {
         generateTags(name, description).then(
           (addedTagNames: string[]) => {
             createCircleInAutomatedMode(
@@ -600,15 +609,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               sendResponse
             )
           }
-        )
-      } else {
-        createCircleInAutomatedMode(
-          url,
-          name,
-          description,
-          tags,
-          isGenesisPost,
-          sendResponse
         )
       }
 
