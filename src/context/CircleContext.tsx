@@ -15,9 +15,7 @@ import { CircleGenerationStatus, circlePageStatus } from 'utils/constants'
 import { BJActions } from 'background/actions'
 
 interface ICircleContext {
-  oneClickStatusMessage: string
   isOneClickCommenting: boolean
-  commentData: string
   circles: CircleInterface[]
   currentUrl: string
   currentTabId: number
@@ -35,9 +33,7 @@ interface ICircleContext {
   getCircleGenerationStatus: () => void
   setCircleData: Dispatch<SetStateAction<CircleInterface>>
   setIsGenesisPost: Dispatch<SetStateAction<boolean>>
-  setCommentData: Dispatch<SetStateAction<string>>
   setIsOneClickCommenting: Dispatch<SetStateAction<boolean>>
-  setOneClickStatusMessage: Dispatch<SetStateAction<string>>
 }
 
 export const initialCircleData = {
@@ -49,9 +45,7 @@ export const initialCircleData = {
 }
 
 const CircleContext = createContext<ICircleContext>({
-  oneClickStatusMessage: '',
   isOneClickCommenting: false,
-  commentData: '',
   circles: [],
   currentUrl: '',
   currentTabId: NaN,
@@ -69,9 +63,7 @@ const CircleContext = createContext<ICircleContext>({
   getCircleGenerationStatus: () => {},
   setCircleData: () => {},
   setIsGenesisPost: () => {},
-  setCommentData: () => {},
   setIsOneClickCommenting: () => {},
-  setOneClickStatusMessage: () => {},
 })
 
 export const useCircleContext = () => useContext(CircleContext)
@@ -92,9 +84,7 @@ export const CircleContextProvider = ({ children }: ICircleContextProvider) => {
   const [isLoadingCGenerationStatus, setIsLoadingCGenerationStatus] = useState(true)
   const [circleData, setCircleData] = useState(initialCircleData) // circle information for manual circle creation
   const [isGenesisPost, setIsGenesisPost] = useState(false)
-  const [commentData, setCommentData] = useState('')
   const [isOneClickCommenting, setIsOneClickCommenting] = useState(false)
-  const [oneClickStatusMessage, setOneClickStatusMessage] = useState('')
 
   const currentPageCircleIds = useMemo(
     () => circles.map((circle) => circle.id),
@@ -173,14 +163,7 @@ export const CircleContextProvider = ({ children }: ICircleContextProvider) => {
               }
             } else if (type === 'direct') {
               if (status === CircleGenerationStatus.INITIALIZED) {
-                chrome.runtime.sendMessage(
-                  { action: BJActions.GET_COMMENT_FROM_STORAGE },
-                  (res) => {
-                    if (res) {
-                      setCommentData(res)
-                    }
-                  }
-                )
+                
               }
               if (status === CircleGenerationStatus.GENERATING) {
                 console.log('Circle is being generated...')
@@ -208,9 +191,7 @@ export const CircleContextProvider = ({ children }: ICircleContextProvider) => {
   return (
     <CircleContext.Provider
       value={{
-        oneClickStatusMessage,
         isOneClickCommenting,
-        commentData,
         circles,
         currentUrl,
         currentTabId,
@@ -228,9 +209,7 @@ export const CircleContextProvider = ({ children }: ICircleContextProvider) => {
         getCircleGenerationStatus,
         setCircleData,
         setIsGenesisPost,
-        setCommentData,
         setIsOneClickCommenting,
-        setOneClickStatusMessage,
       }}
     >
       {children}

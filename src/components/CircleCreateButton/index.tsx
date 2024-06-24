@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import classNames from 'classnames'
 
 import Button from 'components/Buttons/Button'
 import Plus from 'components/SVGIcons/Plus'
@@ -9,9 +10,10 @@ import { initialCircleData } from 'context/CircleContext'
 import { circlePageStatus } from 'utils/constants'
 
 import { BJActions } from 'background/actions'
+import LoadingSpinner from 'components/LoadingSpinner'
 
 const CircleCreateButton = () => {
-  const { setPageStatus, currentTabId, setCircleData, setCircleGenerationStatus } =
+  const { setPageStatus, currentTabId, setCircleData, setCircleGenerationStatus, isOneClickCommenting } =
     useCircleContext()
 
   const handleAddGeneratedCircles = useCallback(() => {
@@ -29,9 +31,9 @@ const CircleCreateButton = () => {
   }, [setPageStatus])
 
   return (
-    <div className={'relative inline-block group'}>
-      <Button>
-        <Plus />
+    <div className={classNames('relative', 'inline-block', 'group', {'pointer-events-none cursor-wait opacity-90': isOneClickCommenting})}>
+      <Button disabled={isOneClickCommenting}>
+        { isOneClickCommenting ? <LoadingSpinner size={24}/> : <Plus /> }
       </Button>
       <div className="hidden group-hover:flex absolute left-1/2 -translate-x-1/2 -top-[85px] z-10 w-44 bg-white border border-stroke rounded-lg flex-col cursor-pointer divide-y divide-solid divide-stroke">
         <button
